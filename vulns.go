@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"strings"
+	"fmt"
 
 	"github.com/michael-go/go-jsn/jsn"
 )
@@ -170,6 +171,22 @@ Create a list of issue details without tickets.
 ***/
 func getSnykOpenSourceIssueWithoutTickets(flags flags, projectID string, maturityFilter []string, tickets map[string]string, customDebug debug, responseAggregatedData []byte) (map[string]interface{}, string, error) {
 
+    issueType := flags.optionalFlags.issueType
+    var issueTypeArray []string
+    if issueType == "all" || issueType == "" {
+        issueTypeArray = append(issueTypeArray, "vuln")
+        issueTypeArray = append(issueTypeArray, "license")
+    } else if issueType == "license" {
+        issueTypeArray = append(issueTypeArray, "license")
+    } else if issueType == "vuln" {
+        issueTypeArray = append(issueTypeArray, "vuln")
+    } else {
+        var errorMessage = "*** ERROR *** %s is invalid issueType passed!!\n Please, Use all, vuln or license"
+        err := fmt.Errorf(errorMessage, issueType)
+        log.Fatalf(errorMessage, issueType)
+        return nil, "", err
+    }
+
 	vulnsPerPath := make(map[string]interface{})
 	vulnsWithAllPaths := make(map[string]interface{})
 
@@ -179,80 +196,47 @@ func getSnykOpenSourceIssueWithoutTickets(flags flags, projectID string, maturit
 	}
 
 	listOfIssues := j.K("issues").Array().Elements()
-
 	issueSkipped := ""
 
 	for _, e := range listOfIssues {
-		if e.K("issueType").String().Value == "vuln" {
-			if len(e.K("id").String().Value) != 0 {
-				if _, found := tickets[e.K("id").String().Value]; !found {
-					var issueId = e.K("id").String().Value
+	    for _, issueType := range issueTypeArray {
+		    if e.K("issueType").String().Value == issueType {
+			    if len(e.K("id").String().Value) != 0 {
+				    if _, found := tickets[e.K("id").String().Value]; !found {
+					    var issueId = e.K("id").String().Value
 
-					bytes, err := json.Marshal(e)
-					if err != nil {
-						continue
-					}
-					json.Unmarshal(bytes, &vulnsPerPath)
+					    bytes, err := json.Marshal(e)
+					    if err != nil {
+						    continue
+					    }
+					    json.Unmarshal(bytes, &vulnsPerPath)
 
-					ProjectIssuePathData, err := makeSnykAPIRequest("GET", flags.mandatoryFlags.endpointAPI+"/v1/org/"+flags.mandatoryFlags.orgID+"/project/"+projectID+"/issue/"+issueId+"/paths", flags.mandatoryFlags.apiToken, nil, customDebug)
-					if err != nil {
-						log.Printf("*** ERROR *** Could not get paths data from %s org %s project %s issue %s", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID, issueId)
-						issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
-						continue
-					}
-					ProjectIssuePathDataJson, er := jsn.NewJson(ProjectIssuePathData)
-					if er != nil {
-						log.Printf("*** ERROR *** Json creation failed\n")
-						issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
-						continue
-					}
-					vulnsPerPath["from"] = ProjectIssuePathDataJson.K("paths")
-					marshalledvulnsPerPath, err := json.Marshal(vulnsPerPath)
-					vulnsWithAllPaths[issueId], err = jsn.NewJson(marshalledvulnsPerPath)
-					if er != nil {
-						log.Printf("*** ERROR *** Json creation failed\n")
-						issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
-						continue
+					    ProjectIssuePathData, err := makeSnykAPIRequest("GET", flags.mandatoryFlags.endpointAPI+"/v1/org/"+flags.mandatoryFlags.orgID+"/project/"+projectID+"/issue/"+issueId+"/paths", flags.mandatoryFlags.apiToken, nil, customDebug)
+					    if err != nil {
+						    log.Printf("*** ERROR *** Could not get paths data from %s org %s project %s issue %s", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID, issueId)
+						    issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
+						    continue
+					    }
+					    ProjectIssuePathDataJson, er := jsn.NewJson(ProjectIssuePathData)
+					    if er != nil {
+						    log.Printf("*** ERROR *** Json creation failed\n")
+						    issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
+						    continue
+					    }
+					    vulnsPerPath["from"] = ProjectIssuePathDataJson.K("paths")
+					    marshalledvulnsPerPath, err := json.Marshal(vulnsPerPath)
+					    vulnsWithAllPaths[issueId], err = jsn.NewJson(marshalledvulnsPerPath)
+					    if er != nil {
+						    log.Printf("*** ERROR *** Json creation failed\n")
+						    issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
+						    continue
+					    }
 					}
 				}
 			}
 		}
 	}
 
-	for _, e := range j.K("issues").K("licenses").Array().Elements() {
-		if e.K("id").String().Value != "" {
-			if _, found := tickets[e.K("id").String().Value]; !found {
-				var issueId = e.K("id").String().Value
-
-				bytes, err := json.Marshal(e)
-				if err != nil {
-					continue
-				}
-				json.Unmarshal(bytes, &vulnsPerPath)
-
-				ProjectIssuePathData, err := makeSnykAPIRequest("GET", flags.mandatoryFlags.endpointAPI+"/v1/org/"+flags.mandatoryFlags.orgID+"/project/"+projectID+"/issue/"+issueId+"/paths", flags.mandatoryFlags.apiToken, nil, customDebug)
-				if err != nil {
-					log.Printf("*** ERROR *** Could not get aggregated data from %s org %s project %s issue %s", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID, issueId)
-					issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
-					continue
-				}
-				ProjectIssuePathDataJson, er := jsn.NewJson(ProjectIssuePathData)
-				if er != nil {
-					log.Printf("*** ERROR *** Json creation failed\n")
-					issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
-					continue
-				}
-				vulnsPerPath["from"] = ProjectIssuePathDataJson.K("paths")
-				marshalledvulnsPerPath, err := json.Marshal(vulnsPerPath)
-				vulnsWithAllPaths[issueId], err = jsn.NewJson(marshalledvulnsPerPath)
-				if er != nil {
-					log.Printf("*** ERROR *** Json creation failed\n")
-					issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
-					continue
-				}
-			}
-		}
-	}
 	return vulnsWithAllPaths, issueSkipped, nil
 }
 

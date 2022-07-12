@@ -438,8 +438,9 @@ func TestGetSnykCodeIssueWithoutTicketsWithMultipleSeverityFilter(t *testing.T) 
 	// Simulate an existing ticket for that vuln
 	tickets["xxbac5ed-83dd-xx65-8730-2xxx4467e0xx"] = "FPI-454"
 
-	response := getSnykCodeIssueWithoutTickets(flags, "789", tickets, cD)
+	response, errorMessage := getSnykCodeIssueWithoutTickets(flags, "789", tickets, cD)
 	assert.Equal(1, len(response))
+    assert.Equal(nil, errorMessage)
 
 	return
 
