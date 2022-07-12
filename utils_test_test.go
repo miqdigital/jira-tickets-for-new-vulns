@@ -43,7 +43,7 @@ func TestSetOptionFunc(t *testing.T) {
 		priorityIsSeverity:     true,
 		priorityScoreThreshold: 20,
 		projectID:              "",
-		severity:      "critical",
+		severity:               "critical",
 	}
 
 	assert.Equal(optionalResult, &options.optionalFlags)
