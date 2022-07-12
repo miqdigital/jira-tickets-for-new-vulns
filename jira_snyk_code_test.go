@@ -359,7 +359,6 @@ func TestGetSnykCodeIssueWithoutTickets(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	// Of.severity = "low,high,medium,critical"
 	Of.severity = "low"
 	Of.priorityScoreThreshold = 0
 	Of.issueType = "all"
@@ -518,7 +517,6 @@ func TestGetSnykCodeIssueWithoutTicketsWithPagination(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	// Of.severity = "low,high,medium,critical"
 	Of.severity = "low"
 	Of.priorityScoreThreshold = 0
 	Of.issueType = "all"

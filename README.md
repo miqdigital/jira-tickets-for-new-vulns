@@ -270,7 +270,7 @@ schema: 1
 snyk:
     orgID: a1b2c3de-99b1-4f3f-bfdb-6ee4b4990513 # <SNYK_ORG_ID>
     projectID: a1b2c3de-99b1-4f3f-bfdb-6ee4b4990514 # <SNYK_PROJECT_ID>
-    severity: critical # <critical|high|medium|low> defaults to low
+    severity: critical # <critical|high|medium|low>
     severities: low # <critical,high,medium,low>
     maturityFilter: mature # <mature,proof-of-concept,no-known-exploit,no-data>
     type: all # <all|vuln|license>
