@@ -1,5 +1,4 @@
 schema: 1
-
 snyk: 
     orgID: 0e9373a6-f858-11ec-b939-0242ac120002
     severity: critical #threshold for jira ticket creation

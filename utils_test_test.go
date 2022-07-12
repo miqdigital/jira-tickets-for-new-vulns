@@ -91,7 +91,7 @@ func TestSetOptionMixFunc(t *testing.T) {
 		priorityIsSeverity:     true,
 		priorityScoreThreshold: 20,
 		projectID:              "",
-		severity:      "critical",
+		severity:               "critical",
 	}
 
 	assert.Equal(optionalResult, &options.optionalFlags)
@@ -135,7 +135,7 @@ func TestSetOption(t *testing.T) {
 		priorityIsSeverity:     true,
 		priorityScoreThreshold: 20,
 		projectID:              "",
-		severity:      "critical",
+		severity:               "critical",
 	}
 
 	customMandatoryJiraFields := map[string]interface{}{"Something": map[string]interface{}{"Value": "This is a summary"}, "transition": map[string]interface{}{"id": 5}}
