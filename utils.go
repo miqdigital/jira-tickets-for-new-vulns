@@ -82,7 +82,7 @@ func (Of *optionalFlags) setoptionalFlags(debugPtr bool, dryRunPtr bool, v viper
 	Of.projectEnvironment = v.GetString("snyk.projectEnvironment")
 	Of.projectLifecycle = v.GetString("snyk.projectLifecycle")
 	Of.jiraTicketType = v.GetString("jira.jiraTicketType")
-	Of.severityThreshold = v.GetString("snyk.severityThreshold")
+	Of.severity = v.GetString("snyk.severity")
 	Of.severities = v.GetString("snyk.severities")
 	Of.issueType = v.GetString("snyk.type")
 	Of.maturityFilterString = v.GetString("snyk.maturityFilter")
@@ -134,7 +134,7 @@ func (opt *flags) setOption(args []string) {
 	fs.String("jiraProjectKey", "", "Your JIRA projectKey (jiraProjectID or jiraProjectKey is required)")
 	fs.String("jiraTicketType", "Bug", "Optional. Chosen JIRA ticket type")
 	fs.String("severities", "", "Optional. Your severity array, to be used for multiple or specific severity")
-	fs.String("severityThreshold", "", "Optional. Your severity threshold, defaults to low")
+	fs.String("severity", "", "Optional. Your severity threshold, defaults to low")
 	fs.String("projectCriticality", "", "Optional. Include only projects whose criticality attribute contains one or more of the specified values.")
 	fs.String("projectEnvironment", "", "Optional. Include only projects whose environment attribute contains one or more of the specified values.")
 	fs.String("projectLifecycle", "", "Optional. Include only projects whose lifecycle attribute contains one or more of the specified values.")
@@ -163,7 +163,7 @@ func (opt *flags) setOption(args []string) {
 	v.BindPFlag("snyk.projectEnvironment", fs.Lookup("projectEnvironment"))
 	v.BindPFlag("snyk.projectLifecycle", fs.Lookup("projectLifecycle"))
 	v.BindPFlag("jira.jiraTicketType", fs.Lookup("jiraTicketType"))
-	v.BindPFlag("snyk.severityThreshold", fs.Lookup("severityThreshold"))
+	v.BindPFlag("snyk.severity", fs.Lookup("severity"))
 	v.BindPFlag("snyk.severities", fs.Lookup("severities"))
 	v.BindPFlag("snyk.type", fs.Lookup("type"))
 	v.BindPFlag("snyk.maturityFilter", fs.Lookup("maturityFilter"))
@@ -241,8 +241,8 @@ func (flags *flags) checkFlags() {
 		log.Fatalf(("*** ERROR *** You passed both assigneeID and assigneeName in parameters\n Please, Use assigneeID OR assigneeName, not both"))
 	}
 
-	if flags.optionalFlags.severities != "" && flags.optionalFlags.severityThreshold != "" {
-		log.Fatalf(("*** ERROR *** You passed both severities and severityThreshold in parameters\n Please, Use severities OR severityThreshold, not both"))
+	if flags.optionalFlags.severities != "" && flags.optionalFlags.severity != "" {
+		log.Fatalf(("*** ERROR *** You passed both severities and severity in parameters\n Please, Use severities OR severity, not both"))
 	}
 }
 

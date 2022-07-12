@@ -25,7 +25,7 @@ func TestGetVulnsWithoutTicketFunc(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severityThreshold = "low"
+	Of.severity = "low"
 	Of.priorityScoreThreshold = 0
 	Of.issueType = "all"
 	Of.debug = false
@@ -135,7 +135,7 @@ func TestNoVulnOrLicense(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severityThreshold = "low"
+	Of.severity = "low"
 	Of.priorityScoreThreshold = 0
 	Of.issueType = "all"
 	Of.debug = false
@@ -186,7 +186,7 @@ func TestGetVulnsWithoutTicketErrorRetrievingDataFunc(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severityThreshold = "low"
+	Of.severity = "low"
 	Of.priorityScoreThreshold = 0
 	Of.issueType = "all"
 	Of.debug = false

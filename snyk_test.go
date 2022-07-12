@@ -232,7 +232,7 @@ func TestGetProjectsIdsAllProjects(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severityThreshold = ""
+	Of.severity = ""
 	Of.priorityScoreThreshold = 0
 	Of.issueType = ""
 	Of.debug = false

@@ -65,7 +65,7 @@ func TestOpenJiraTicketCodeOnly(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severityThreshold = ""
+	Of.severity = ""
 	Of.priorityScoreThreshold = 0
 	Of.issueType = ""
 	Of.debug = true
@@ -119,7 +119,7 @@ func TestOpenJiraTicketCodeOnlyWithLabel(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severityThreshold = ""
+	Of.severity = ""
 	Of.priorityScoreThreshold = 0
 	Of.issueType = ""
 	Of.debug = true
@@ -180,7 +180,7 @@ func TestOpenJiraTicketCodeOnlyWithSeverity(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severityThreshold = ""
+	Of.severity = ""
 	Of.priorityScoreThreshold = 0
 	Of.issueType = ""
 	Of.debug = true
@@ -241,7 +241,7 @@ func TestOpenJiraTicketCodeOnlyWithAssigneeId(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severityThreshold = ""
+	Of.severity = ""
 	Of.priorityScoreThreshold = 0
 	Of.issueType = ""
 	Of.debug = true
@@ -302,7 +302,7 @@ func TestOpenJiraTicketCodeOnlyWithAssigneeName(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severityThreshold = ""
+	Of.severity = ""
 	Of.priorityScoreThreshold = 0
 	Of.issueType = ""
 	Of.debug = true
@@ -360,7 +360,7 @@ func TestGetSnykCodeIssueWithoutTickets(t *testing.T) {
 	// setting optional options
 	Of := optionalFlags{}
 	// Of.severity = "low,high,medium,critical"
-	Of.severityThreshold = "low"
+	Of.severity = "low"
 	Of.priorityScoreThreshold = 0
 	Of.issueType = "all"
 	Of.debug = false
@@ -466,7 +466,7 @@ func TestGetSnykCodeIssueWithoutTicketsWithSeverityFilter(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severityThreshold = "high"
+	Of.severity = "high"
 	Of.priorityScoreThreshold = 0
 	Of.issueType = "all"
 	Of.debug = false
@@ -519,7 +519,7 @@ func TestGetSnykCodeIssueWithoutTicketsWithPagination(t *testing.T) {
 	// setting optional options
 	Of := optionalFlags{}
 	// Of.severity = "low,high,medium,critical"
-	Of.severityThreshold = "low"
+	Of.severity = "low"
 	Of.priorityScoreThreshold = 0
 	Of.issueType = "all"
 	Of.debug = false
