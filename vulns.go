@@ -187,7 +187,6 @@ func getSnykOpenSourceIssueWithoutTickets(flags flags, projectID string, maturit
         return nil, "", err
     }
 
-    log.Printf("IssueType: %s",issueType)
 	vulnsPerPath := make(map[string]interface{})
 	vulnsWithAllPaths := make(map[string]interface{})
 
