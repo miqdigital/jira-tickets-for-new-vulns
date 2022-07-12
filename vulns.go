@@ -173,7 +173,7 @@ func getSnykOpenSourceIssueWithoutTickets(flags flags, projectID string, maturit
 
     issueType := flags.optionalFlags.issueType
     var issueTypeArray []string
-    if issueType == "all" {
+    if issueType == "all" || issueType == "" {
         issueTypeArray = append(issueTypeArray, "vuln")
         issueTypeArray = append(issueTypeArray, "license")
     } else if issueType == "license" {
