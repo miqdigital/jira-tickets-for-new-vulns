@@ -237,43 +237,6 @@ func getSnykOpenSourceIssueWithoutTickets(flags flags, projectID string, maturit
 		}
 	}
 
-// 	for _, e := range listOfIssues {
-// 	    if e.K("issueType").String().Value == "license" {
-// 		    if e.K("id").String().Value != "" {
-// 			    if _, found := tickets[e.K("id").String().Value]; !found {
-// 				    var issueId = e.K("id").String().Value
-//
-// 				    bytes, err := json.Marshal(e)
-// 				    if err != nil {
-// 					    continue
-// 				    }
-// 				    json.Unmarshal(bytes, &vulnsPerPath)
-//
-// 				    ProjectIssuePathData, err := makeSnykAPIRequest("GET", flags.mandatoryFlags.endpointAPI+"/v1/org/"+flags.mandatoryFlags.orgID+"/project/"+projectID+"/issue/"+issueId+"/paths", flags.mandatoryFlags.apiToken, nil, customDebug)
-// 				    if err != nil {
-// 					    log.Printf("*** ERROR *** Could not get aggregated data from %s org %s project %s issue %s", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID, issueId)
-// 					    issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
-// 					    continue
-// 				    }
-// 				    ProjectIssuePathDataJson, er := jsn.NewJson(ProjectIssuePathData)
-// 				    if er != nil {
-// 					    log.Printf("*** ERROR *** Json creation failed\n")
-// 					    issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
-// 					    continue
-// 				    }
-// 				    vulnsPerPath["from"] = ProjectIssuePathDataJson.K("paths")
-// 				    marshalledvulnsPerPath, err := json.Marshal(vulnsPerPath)
-// 				    vulnsWithAllPaths[issueId], err = jsn.NewJson(marshalledvulnsPerPath)
-// 				    if er != nil {
-// 					    log.Printf("*** ERROR *** Json creation failed\n")
-// 					    issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
-// 					    continue
-// 				    }
-// 			    }
-// 			}
-// 		}
-// 	}
-
 	return vulnsWithAllPaths, issueSkipped, nil
 }
 
