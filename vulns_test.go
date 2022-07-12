@@ -78,7 +78,7 @@ func TestGetVulnsWithoutTicketFuncWithSeverityFilter(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severities = "critical,low"
+	Of.severityArray = "critical,low"
 	Of.priorityScoreThreshold = 0
 	Of.issueType = "all"
 	Of.debug = false
@@ -131,7 +131,7 @@ func TestGetLicenseWithoutTicketFuncWithSeverityFilter(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severities = "critical,low"
+	Of.severityArray = "critical,low"
 	Of.priorityScoreThreshold = 0
 	Of.issueType = "license"
 	Of.debug = false

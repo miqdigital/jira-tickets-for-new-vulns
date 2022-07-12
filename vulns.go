@@ -25,7 +25,7 @@ type Priority struct {
 
 // Filter allows to filter on severity, type, ignore or patched vuln
 type Filter struct {
-	Severities      []string `json:"severities"`
+	Severities      []string `json:"severityArray"`
 	ExploitMaturity []string `json:"exploitMaturity,omitempty"`
 	Priority        Priority `json:"priority"`
 	Types           []string `json:"types"`
@@ -37,13 +37,13 @@ type Filter struct {
 func getSeverity(flags flags) []string {
 
 	var severity []string
-	if len(flags.optionalFlags.severities) > 0 && len(flags.optionalFlags.severity) == 0 {
+	if len(flags.optionalFlags.severityArray) > 0 && len(flags.optionalFlags.severity) == 0 {
 
 		// In this, low severity means get issues only with low severity,
 		// medium means only medium and so on
 		// if we want to use multiple severity, we have to pass comma separated values
 
-		var severitiesArray []string = strings.Split(flags.optionalFlags.severities, ",")
+		var severitiesArray []string = strings.Split(flags.optionalFlags.severityArray, ",")
 		var severityFilter []string
 		for _, severity := range severitiesArray {
 			switch severity {
