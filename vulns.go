@@ -36,7 +36,7 @@ type Filter struct {
 func getSeverity(flags flags) []string {
 
 	var severity []string
-	if len(flags.optionalFlags.severities) > 0 && len(flags.optionalFlags.severityThreshold) == 0 {
+	if len(flags.optionalFlags.severities) > 0 && len(flags.optionalFlags.severity) == 0 {
 
 		// In this, low severity means get issues only with low severity,
 		// medium means only medium and so on
@@ -67,7 +67,7 @@ func getSeverity(flags flags) []string {
 		// to keep the logic of the tool
 		// we create an array of severity
 		// and loop on it to get all the issues
-		switch flags.optionalFlags.severityThreshold {
+		switch flags.optionalFlags.severity {
 		case "critical":
 			severity = []string{"critical"}
 		case "high":
