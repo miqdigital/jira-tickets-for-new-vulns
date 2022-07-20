@@ -37,13 +37,13 @@ type Filter struct {
 func getSeverity(flags flags) []string {
 
 	var severity []string
-	if len(flags.optionalFlags.severities) > 0 && len(flags.optionalFlags.severity) == 0 {
+	if len(flags.optionalFlags.severityArray) > 0 && len(flags.optionalFlags.severity) == 0 {
 
 		// In this, low severity means get issues only with low severity,
 		// medium means only medium and so on
 		// if we want to use multiple severity, we have to pass comma separated values
 
-		var severitiesArray []string = strings.Split(flags.optionalFlags.severities, ",")
+		var severitiesArray []string = strings.Split(flags.optionalFlags.severityArray, ",")
 		var severityFilter []string
 		for _, severity := range severitiesArray {
 			switch severity {
@@ -119,6 +119,8 @@ func getVulnsWithoutTicket(flags flags, projectID string, maturityFilter []strin
 	if err != nil {
 		customDebug.Debug(" *** ERROR *** IAC projects are not supported by this tool, skipping this project")
 	}
+
+	log.Printf("Body: %s",body.Filters)
 
 	responseAggregatedData, err := makeSnykAPIRequest("POST", flags.mandatoryFlags.endpointAPI+"/v1/org/"+flags.mandatoryFlags.orgID+"/project/"+projectID+"/aggregated-issues", flags.mandatoryFlags.apiToken, marshalledBody, customDebug)
 	if err != nil {
@@ -227,7 +229,7 @@ func getSnykOpenSourceIssueWithoutTickets(flags flags, projectID string, maturit
 					    marshalledvulnsPerPath, err := json.Marshal(vulnsPerPath)
 					    vulnsWithAllPaths[issueId], err = jsn.NewJson(marshalledvulnsPerPath)
 					    if er != nil {
-						    log.Printf("*** ERROR *** Json creation failed\n")
+						    log.Printf("*** ERROR *** vuln per path Json creation failed\n")
 						    issueSkipped += "\nissue ID: " + issueId + " from project ID:" + projectID
 						    continue
 					    }

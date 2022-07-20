@@ -83,7 +83,7 @@ func (Of *optionalFlags) setoptionalFlags(debugPtr bool, dryRunPtr bool, v viper
 	Of.projectLifecycle = v.GetString("snyk.projectLifecycle")
 	Of.jiraTicketType = v.GetString("jira.jiraTicketType")
 	Of.severity = v.GetString("snyk.severity")
-	Of.severities = v.GetString("snyk.severities")
+	Of.severityArray = v.GetString("snyk.severityArray")
 	Of.issueType = v.GetString("snyk.type")
 	Of.maturityFilterString = v.GetString("snyk.maturityFilter")
 	Of.assigneeID = v.GetString("jira.assigneeID")
@@ -133,7 +133,7 @@ func (opt *flags) setOption(args []string) {
 	fs.String("jiraProjectID", "", "Your JIRA projectID (jiraProjectID or jiraProjectKey is required)")
 	fs.String("jiraProjectKey", "", "Your JIRA projectKey (jiraProjectID or jiraProjectKey is required)")
 	fs.String("jiraTicketType", "Bug", "Optional. Chosen JIRA ticket type")
-	fs.String("severities", "", "Optional. Your severity array, to be used for multiple or specific severity")
+	fs.String("severityArray", "", "Optional. Your severity array, to be used for multiple or specific severity")
 	fs.String("severity", "", "Optional. Your severity threshold, defaults to low")
 	fs.String("projectCriticality", "", "Optional. Include only projects whose criticality attribute contains one or more of the specified values.")
 	fs.String("projectEnvironment", "", "Optional. Include only projects whose environment attribute contains one or more of the specified values.")
@@ -164,7 +164,7 @@ func (opt *flags) setOption(args []string) {
 	v.BindPFlag("snyk.projectLifecycle", fs.Lookup("projectLifecycle"))
 	v.BindPFlag("jira.jiraTicketType", fs.Lookup("jiraTicketType"))
 	v.BindPFlag("snyk.severity", fs.Lookup("severity"))
-	v.BindPFlag("snyk.severities", fs.Lookup("severities"))
+	v.BindPFlag("snyk.severityArray", fs.Lookup("severityArray"))
 	v.BindPFlag("snyk.type", fs.Lookup("type"))
 	v.BindPFlag("snyk.maturityFilter", fs.Lookup("maturityFilter"))
 	v.BindPFlag("jira.assigneeID", fs.Lookup("assigneeId"))
@@ -241,8 +241,8 @@ func (flags *flags) checkFlags() {
 		log.Fatalf(("*** ERROR *** You passed both assigneeID and assigneeName in parameters\n Please, Use assigneeID OR assigneeName, not both"))
 	}
 
-	if flags.optionalFlags.severities != "" && flags.optionalFlags.severity != "" {
-		log.Fatalf(("*** ERROR *** You passed both severities and severity in parameters\n Please, Use severities OR severity, not both"))
+	if flags.optionalFlags.severityArray != "" && flags.optionalFlags.severity != "" {
+		log.Fatalf(("*** ERROR *** You passed both severityArray and severity in parameters\n Please, Use severityArray OR severity, not both"))
 	}
 }
 

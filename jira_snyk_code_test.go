@@ -412,7 +412,7 @@ func TestGetSnykCodeIssueWithoutTicketsWithMultipleSeverityFilter(t *testing.T) 
 
 	// setting optional options
 	Of := optionalFlags{}
-	Of.severities = "high,medium"
+	Of.severityArray = "high,medium"
 	Of.priorityScoreThreshold = 0
 	Of.issueType = "all"
 	Of.debug = false

@@ -29,7 +29,7 @@ type optionalFlags struct {
 	projectLifecycle       string
 	jiraTicketType         string
 	severity               string
-	severities             string
+	severityArray          string
 	issueType              string
 	maturityFilterString   string
 	assigneeID             string
