@@ -120,9 +120,9 @@ func getVulnsWithoutTicket(flags flags, projectID string, maturityFilter []strin
 		customDebug.Debug(" *** ERROR *** IAC projects are not supported by this tool, skipping this project")
 	}
 
-	log.Printf("Body: %s",body.Filters)
-
 	responseAggregatedData, err := makeSnykAPIRequest("POST", flags.mandatoryFlags.endpointAPI+"/v1/org/"+flags.mandatoryFlags.orgID+"/project/"+projectID+"/aggregated-issues", flags.mandatoryFlags.apiToken, marshalledBody, customDebug)
+
+// 	log.Printf(m)
 	if err != nil {
 		customDebug.Debugf("*** ERROR *** Could not get aggregated data from %s org %s project %s, skipping this project", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID)
 		return nil, "", err
