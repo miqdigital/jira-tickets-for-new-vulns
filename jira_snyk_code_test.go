@@ -50,7 +50,6 @@ func TestFormatCodeTicketFunc(t *testing.T) {
 	data, _ := jsn.NewJson(readFixture("./fixtures/snyk_code_fixtures/snykCodeIssueAllDetailsForJiraForTicketTest.json"))
 
 	jiraTicket := formatCodeJiraTicket(data, projectInfo, flags)
-	jiraTicket := formatCodeJiraTicket(data, projectInfo, flags)
 
 	// Convert jira ticket into a string
 	ticket := fmt.Sprintf("%v", jiraTicket)
@@ -105,12 +104,10 @@ func TestOpenJiraTicketCodeOnly(t *testing.T) {
 	Of.labels = ""
 	Of.priorityIsSeverity = false
 	Of.cveInTitle = false
-	Of.cveInTitle = false
 	Of.projectID = ""
 	Of.maturityFilterString = ""
 	Of.dryRun = false
 	Of.ifUpgradeAvailableOnly = false
-	Of.ifAutoFixableOnly = false
 	Of.ifAutoFixableOnly = false
 
 	flags := flags{}
@@ -123,19 +120,13 @@ func TestOpenJiraTicketCodeOnly(t *testing.T) {
 
 	CreateLogFile(cD, "ErrorsFile_")
 
-	CreateLogFile(cD, "ErrorsFile_")
-
 	responseDataAggregatedByte, ticket, err, jiraApiUrl := openJiraTicket(flags, projectInfo, codeIssueForJira, cD)
-
-	fmt.Println(responseDataAggregatedByte, ticket, err, jiraApiUrl)
 
 	fmt.Println(responseDataAggregatedByte, ticket, err, jiraApiUrl)
 
 	assert.NotNil(t, ticket)
 	assert.NotNil(t, jiraApiUrl)
 	assert.NotNil(t, responseDataAggregatedByte)
-
-	removeLogFile()
 
 	removeLogFile()
 
@@ -178,7 +169,6 @@ func TestOpenJiraTicketCodeOnlyWithLabel(t *testing.T) {
 	Of.dryRun = false
 	Of.ifUpgradeAvailableOnly = false
 	Of.ifAutoFixableOnly = false
-	Of.ifAutoFixableOnly = false
 
 	flags := flags{}
 	flags.mandatoryFlags = Mf
@@ -187,8 +177,6 @@ func TestOpenJiraTicketCodeOnlyWithLabel(t *testing.T) {
 	// setting debug
 	cD := debug{}
 	cD.setDebug(false)
-
-	CreateLogFile(cD, "ErrorsFile_")
 
 	CreateLogFile(cD, "ErrorsFile_")
 
@@ -203,8 +191,6 @@ func TestOpenJiraTicketCodeOnlyWithLabel(t *testing.T) {
 	assert.Equal(1, numberIssueCreated)
 	assert.NotNil(tickets)
 	assert.Equal(string(readFixture("./fixtures/snyk_code_fixtures/results/codeTicketWithLabels.json")), string(mirroredResponse.Body))
-
-	removeLogFile()
 
 	removeLogFile()
 
@@ -248,7 +234,6 @@ func TestOpenJiraTicketCodeOnlyWithSeverity(t *testing.T) {
 	Of.dryRun = false
 	Of.ifUpgradeAvailableOnly = false
 	Of.ifAutoFixableOnly = false
-	Of.ifAutoFixableOnly = false
 
 	flags := flags{}
 	flags.mandatoryFlags = Mf
@@ -257,8 +242,6 @@ func TestOpenJiraTicketCodeOnlyWithSeverity(t *testing.T) {
 	// setting debug
 	cD := debug{}
 	cD.setDebug(false)
-
-	CreateLogFile(cD, "ErrorsFile_")
 
 	CreateLogFile(cD, "ErrorsFile_")
 
@@ -273,8 +256,6 @@ func TestOpenJiraTicketCodeOnlyWithSeverity(t *testing.T) {
 	assert.Equal(numberIssueCreated, 1)
 	assert.NotNil(tickets)
 	assert.Equal(string(readFixture("./fixtures/snyk_code_fixtures/results/codeTicketWithSeverity.json")), string(mirroredResponse.Body))
-
-	removeLogFile()
 
 	removeLogFile()
 
@@ -317,9 +298,7 @@ func TestOpenJiraTicketCodeOnlyWithAssigneeId(t *testing.T) {
 	Of.maturityFilterString = ""
 	Of.dryRun = false
 	Of.cveInTitle = true
-	Of.cveInTitle = true
 	Of.ifUpgradeAvailableOnly = false
-	Of.ifAutoFixableOnly = false
 	Of.ifAutoFixableOnly = false
 
 	flags := flags{}
@@ -332,8 +311,6 @@ func TestOpenJiraTicketCodeOnlyWithAssigneeId(t *testing.T) {
 
 	CreateLogFile(cD, "ErrorsFile_")
 
-	CreateLogFile(cD, "ErrorsFile_")
-
 	numberIssueCreated, jiraResponse, NotCreatedIssueId, tickets := openJiraTickets(flags, projectInfo, codeIssueForJira, cD)
 
 	var mirroredResponse mirroredResponse
@@ -343,12 +320,8 @@ func TestOpenJiraTicketCodeOnlyWithAssigneeId(t *testing.T) {
 
 	assert.NotNil(NotCreatedIssueId, "")
 	assert.NotNil(numberIssueCreated)
-	assert.NotNil(NotCreatedIssueId, "")
-	assert.NotNil(numberIssueCreated)
 	assert.NotNil(tickets)
 	assert.Equal(string(readFixture("./fixtures/snyk_code_fixtures/results/codeTicketWithAssigneeId.json")), string(mirroredResponse.Body))
-
-	removeLogFile()
 
 	removeLogFile()
 
@@ -387,7 +360,6 @@ func TestGetSnykCodeIssueWithoutTickets(t *testing.T) {
 	Of.maturityFilterString = ""
 	Of.ifUpgradeAvailableOnly = false
 	Of.ifAutoFixableOnly = false
-	Of.ifAutoFixableOnly = false
 
 	flags := flags{}
 	flags.mandatoryFlags = Mf
@@ -399,16 +371,12 @@ func TestGetSnykCodeIssueWithoutTickets(t *testing.T) {
 
 	CreateLogFile(cD, "ErrorsFile_")
 
-	CreateLogFile(cD, "ErrorsFile_")
-
 	var tickets map[string]string
 	tickets = make(map[string]string)
 	// Simulate an existing ticket for that vuln
 	tickets["xxbac5ed-83dd-xx65-8730-2xxx4467e0xx"] = "FPI-454"
 
 	response, _ := getSnykCodeIssueWithoutTickets(flags, "789", tickets, cD)
-
-	removeLogFile()
 
 	removeLogFile()
 
@@ -450,7 +418,6 @@ func TestGetSnykCodeIssueWithoutTicketsWithIgnored(t *testing.T) {
 	Of.maturityFilterString = ""
 	Of.ifUpgradeAvailableOnly = false
 	Of.ifAutoFixableOnly = false
-	Of.ifAutoFixableOnly = false
 
 	flags := flags{}
 	flags.mandatoryFlags = Mf
@@ -467,12 +434,7 @@ func TestGetSnykCodeIssueWithoutTicketsWithIgnored(t *testing.T) {
 
 	CreateLogFile(cD, "ErrorsFile_")
 
-	CreateLogFile(cD, "ErrorsFile_")
-
 	response, _ := getSnykCodeIssueWithoutTickets(flags, "7891", tickets, cD)
-
-	removeLogFile()
-
 
 	removeLogFile()
 
@@ -514,7 +476,6 @@ func TestGetSnykCodeIssueWithoutTicketsWithSeverityFilter(t *testing.T) {
 	Of.maturityFilterString = ""
 	Of.ifUpgradeAvailableOnly = false
 	Of.ifAutoFixableOnly = false
-	Of.ifAutoFixableOnly = false
 
 	flags := flags{}
 	flags.mandatoryFlags = Mf
@@ -531,11 +492,7 @@ func TestGetSnykCodeIssueWithoutTicketsWithSeverityFilter(t *testing.T) {
 
 	CreateLogFile(cD, "ErrorsFile_")
 
-	CreateLogFile(cD, "ErrorsFile_")
-
 	response, _ := getSnykCodeIssueWithoutTickets(flags, "789", tickets, cD)
-
-	removeLogFile()
 
 	removeLogFile()
 	assert.Equal(1, len(response))
@@ -556,7 +513,6 @@ func TestGetSnykCodeIssueWithoutTicketsWithPagination(t *testing.T) {
 	// setting mandatory options
 	Mf := MandatoryFlags{}
 	Mf.orgID = "xxx99a85-c519-xxxx-ae55-xxx9b9bfaxxx"
-	Mf.orgID = "xxx99a85-c519-xxxx-ae55-xxx9b9bfaxxx"
 	Mf.endpointAPI = server.URL
 	Mf.apiToken = "123"
 	Mf.jiraProjectID = "123"
@@ -573,10 +529,8 @@ func TestGetSnykCodeIssueWithoutTicketsWithPagination(t *testing.T) {
 	Of.labels = ""
 	Of.priorityIsSeverity = false
 	Of.projectID = "xxx99a85-c519-xxxx-ae55-xxx9b9bfaxxx"
-	Of.projectID = "xxx99a85-c519-xxxx-ae55-xxx9b9bfaxxx"
 	Of.maturityFilterString = ""
 	Of.ifUpgradeAvailableOnly = false
-	Of.ifAutoFixableOnly = false
 	Of.ifAutoFixableOnly = false
 
 	flags := flags{}
@@ -594,15 +548,8 @@ func TestGetSnykCodeIssueWithoutTicketsWithPagination(t *testing.T) {
 
 	CreateLogFile(cD, "ErrorsFile_")
 
-	CreateLogFile(cD, "ErrorsFile_")
-
 	response, _ := getSnykCodeIssueWithoutTickets(flags, "1234", tickets, cD)
 
-	assert.Equal(4, len(response))
-	assert.NotEmpty(response["bbbbbbb-83dd-xx65-8730-2xxx4467e00q"], "bbbbbbb-83dd-xx65-8730-2xxx4467e00q id exists in map")
-	assert.NotEmpty(response["xxbac5ed-83dd-xx65-8730-2xxx4467e00q"], "xxbac5ed-83dd-xx65-8730-2xxx4467e00q exists in map")
-	assert.NotEmpty(response["xxbac5ed-critical2-xx65-8730-2xxx4467e00q"], "xxbac5ed-critical2-xx65-8730-2xxx4467e00q exists in map")
-	assert.NotEmpty(response["xxbac5ed-critical1-xx65-8730-2xxx4467e00q"], "xxbac5ed-critical1-xx65-8730-2xxx4467e00q exists in map")
 	assert.Equal(4, len(response))
 	assert.NotEmpty(response["bbbbbbb-83dd-xx65-8730-2xxx4467e00q"], "bbbbbbb-83dd-xx65-8730-2xxx4467e00q id exists in map")
 	assert.NotEmpty(response["xxbac5ed-83dd-xx65-8730-2xxx4467e00q"], "xxbac5ed-83dd-xx65-8730-2xxx4467e00q exists in map")
