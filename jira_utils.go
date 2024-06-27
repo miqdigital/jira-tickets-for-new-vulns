@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"errors"
 	"fmt"
 	"sort"
 	"log"
@@ -65,6 +66,7 @@ func getJiraTicketId(responseData []byte) *JiraDetailForTicket {
 }
 
 func formatJiraTicket(jsonVuln jsn.Json, projectInfo jsn.Json, flags flags) *JiraIssue {
+func formatJiraTicket(jsonVuln jsn.Json, projectInfo jsn.Json, flags flags) *JiraIssue {
 
 	issueData := jsonVuln.K("issueData")
 
@@ -96,15 +98,18 @@ func formatJiraTicket(jsonVuln jsn.Json, projectInfo jsn.Json, flags flags) *Jir
 	}
 
 	snykBreadcrumbs := "\n\n[See this issue on Snyk](" + projectInfo.K("browseUrl").String().Value + ")\n"
+	snykBreadcrumbs := "\n\n[See this issue on Snyk](" + projectInfo.K("browseUrl").String().Value + ")\n"
 	moreAboutThisIssue := "\n\n[More About this issue](" + issueData.K("url").String().Value + ")\n"
 
 	pkgVersions := "\n pkgVersions: "
+	pkgVersions += "[" + strings.Join(pkgVersionsArray, ", ")
 	pkgVersions += "[" + strings.Join(pkgVersionsArray, ", ")
 	pkgVersions += "]\n\r"
 
 	descriptionFromIssue := ""
 
 	if issueData.K("type").String().Value == "license" {
+		descriptionFromIssue = `This dependency is infringing your organization license policy.
 		descriptionFromIssue = `This dependency is infringing your organization license policy.
 								Refer to the Reporting tab for possible instructions from your legal team.`
 	}
@@ -128,7 +133,27 @@ func formatJiraTicket(jsonVuln jsn.Json, projectInfo jsn.Json, flags flags) *Jir
 		sort.Strings(identifiers)
 	}
 	issueDetails := []string{"\r\n** Issue details: **\n\r",
+	var identifiers []string
+	var cveIdentifiers []string
+	issueData.K("identifiers").IterMap(
+		func(k string, v jsn.Json) bool {
+			for _, value := range v.Array().Elements() {
+				identifiers = append(identifiers, value.String().Value)
+				if k == "CVE" {
+					cveIdentifiers = append(cveIdentifiers, value.String().Value)
+				}
+			}
+			return true // false to break
+		})
+
+	if len(identifiers) == 0 {
+		identifiers = append(identifiers, "N/A")
+	} else {
+		sort.Strings(identifiers)
+	}
+	issueDetails := []string{"\r\n** Issue details: **\n\r",
 		"\n cvssScore: ", fmt.Sprintf("%.2f", issueData.K("cvssScore").Float64().Value),
+		"\n identifiers: ", strings.Join(identifiers, ", "),
 		"\n identifiers: ", strings.Join(identifiers, ", "),
 		"\n exploitMaturity: ", issueData.K("exploitMaturity").String().Value,
 		"\n severity: ", issueData.K("severity").String().Value,
@@ -172,6 +197,7 @@ func markdownToConfluenceWiki(textToConvert string) string {
 }
 
 func formatCodeJiraTicket(jsonVuln jsn.Json, projectInfo jsn.Json, flags flags) *JiraIssue {
+func formatCodeJiraTicket(jsonVuln jsn.Json, projectInfo jsn.Json, flags flags) *JiraIssue {
 
 	issueData := jsonVuln.K("data")
 
@@ -210,8 +236,11 @@ func formatCodeJiraTicket(jsonVuln jsn.Json, projectInfo jsn.Json, flags flags) 
 	descriptionBody = strings.ReplaceAll(descriptionBody, "/etc/passwd", "")
 	summary := projectInfo.K("name").String().Value + " - " + jsonVuln.K("title").String().Value
 	// TODO: add CVE in title once API sends it
+	summary := projectInfo.K("name").String().Value + " - " + jsonVuln.K("title").String().Value
+	// TODO: add CVE in title once API sends it
 	jiraTicket := &JiraIssue{
 		Field{
+			Summary:     summary,
 			Summary:     summary,
 			Description: descriptionBody,
 		},
@@ -220,6 +249,8 @@ func formatCodeJiraTicket(jsonVuln jsn.Json, projectInfo jsn.Json, flags flags) 
 	return jiraTicket
 }
 
+/*
+**
 /*
 **
 function addMandatoryFieldToTicket
@@ -357,6 +388,8 @@ func addMandatoryFieldToTicket(ticket []byte, customMandatoryField map[string]in
 
 /*
 **
+/*
+**
 function supportJiraFormats
 input interface{} v, previous custom value
 input debug
@@ -366,7 +399,13 @@ Usage: customfield_10601:
 
 	value: jira-MultiGroupPicker-Value1,Value2
 
+
+	value: jira-MultiGroupPicker-Value1,Value2
+
 https://developer.atlassian.com/server/jira/platform/jira-rest-api-example-create-issue-7897248/
+**
+*/
+func supportJiraFormats(v string, customDebug debug) (result interface{}, err error) {
 **
 */
 func supportJiraFormats(v string, customDebug debug) (result interface{}, err error) {
@@ -387,7 +426,11 @@ func supportJiraFormats(v string, customDebug debug) (result interface{}, err er
 		if len(list) == 0 {
 			return nil, errors.New("Custom field format JiraMultiSelect not recognized, please check the config file.")
 		}
+		if len(list) == 0 {
+			return nil, errors.New("Custom field format JiraMultiSelect not recognized, please check the config file.")
+		}
 		result = list
+
 
 	case JiraMultiGroupPicker:
 		list := make([]map[string]string, 0)
@@ -397,6 +440,10 @@ func supportJiraFormats(v string, customDebug debug) (result interface{}, err er
 			data["name"] = x
 
 			list = append(list, data)
+		}
+
+		if len(list) == 0 {
+			return nil, errors.New("Custom field format JiraMultiGroupPicker not recognized, please check the config file.")
 		}
 
 		if len(list) == 0 {
@@ -414,9 +461,17 @@ func supportJiraFormats(v string, customDebug debug) (result interface{}, err er
 			return nil, errors.New("Custom field format JiraLabels not recognized, please check the config file.")
 		}
 
+		if len(list) == 0 {
+			return nil, errors.New("Custom field format JiraLabels not recognized, please check the config file.")
+		}
+
 		result = list
 
 	case JiraSimpleField:
+
+		if len(valueSplit[2]) == 0 {
+			return nil, errors.New("Custom field format JiraSimpleField not recognized, please check the config file.")
+		}
 
 		if len(valueSplit[2]) == 0 {
 			return nil, errors.New("Custom field format JiraSimpleField not recognized, please check the config file.")
@@ -426,11 +481,18 @@ func supportJiraFormats(v string, customDebug debug) (result interface{}, err er
 
 	default:
 		return nil, errors.New("Custom field format not recognized, please check the config file.")
+
+	default:
+		return nil, errors.New("Custom field format not recognized, please check the config file.")
 	}
 
 	if customDebug.PrintDebug {
 		customDebug.Debug(fmt.Sprintf("*** INFO *** Custom field value '%s' replaced with '%s' ", v, result))
 	}
+	if customDebug.PrintDebug {
+		customDebug.Debug(fmt.Sprintf("*** INFO *** Custom field value '%s' replaced with '%s' ", v, result))
+	}
 
+	return result, nil
 	return result, nil
 }

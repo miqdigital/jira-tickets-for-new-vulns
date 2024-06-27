@@ -3,6 +3,10 @@
 
 Sync your Snyk monitored projects and open automatically JIRA tickets for new issues and existing one(s) without ticket already created.
 Run this after `snyk monitor` in CI or every day/hour for non CLI projects.
+### Open Jira tickets for new & existing Snyk project issues
+
+Sync your Snyk monitored projects and open automatically JIRA tickets for new issues and existing one(s) without ticket already created.
+Run this after `snyk monitor` in CI or every day/hour for non CLI projects.
 Aimed to be executed at regular interval or with a trigger of your choice (webhooks).
 
 
@@ -13,6 +17,8 @@ Aimed to be executed at regular interval or with a trigger of your choice (webho
 **This repository is in maintenance mode, no new features are being developed. Bug & security fixes will continue to be delivered. Open source contributions are welcome for small features & fixes (no breaking changes)**
 
 ## Installation
+You can either download the binaries from the [the release page](https://github.com/snyk-tech-services/jira-tickets-for-new-vulns/releases)
+or
 You can either download the binaries from the [the release page](https://github.com/snyk-tech-services/jira-tickets-for-new-vulns/releases)
 or
 Use `go install github.com/snyk-tech-services/jira-tickets-for-new-vulns@latest`
@@ -88,6 +94,7 @@ Use `go install github.com/snyk-tech-services/jira-tickets-for-new-vulns@latest`
 - `--maturityFilter` *optional*
 
   Can be one or multiple values: `mature`, `proof-of-concept`, `no-known-exploit`, `no-data`. **Note: Not supported for Snyk Code**
+  Can be one or multiple values: `mature`, `proof-of-concept`, `no-known-exploit`, `no-data`. **Note: Not supported for Snyk Code**
 
   *Example*: `--maturityFilter=[mature,no-data]`
 - `--type` *optional*
@@ -99,7 +106,7 @@ Use `go install github.com/snyk-tech-services/jira-tickets-for-new-vulns@latest`
 
   [Jira ID of user](https://community.atlassian.com/t5/Jira-questions/How-do-I-find-my-account-ID/qaq-p/1702795#:~:text=Click%20your%20Profile%20menu%20in,people%2F%20is%20your%20account%20ID.&text=p.s.%20of%20course%20this%20is%20a%20manual%20way%20to%20check%20user%20IDs.&text=Ah%2C%20for%20some%20reason%20I%20thought%20you%20were%20on%20Jira%20Cloud!) to assign tickets to.
 
-  *Example*: `--assigneeId=123abc456def789`
+  *Example*: `--assigneeId="123abc456def789"`
 - **DEPRECATED** `--assigneeName` *optional*
 
   Currently Snyk supports Jira API v2 where this field is now deprecated. See the [Jira deprecation notice](https://developer.atlassian.com/cloud/jira/platform/deprecation-notice-user-privacy-api-migration-guide/).
@@ -115,6 +122,12 @@ Use `go install github.com/snyk-tech-services/jira-tickets-for-new-vulns@latest`
 
   *Example*: `--labels=app-1234`
 
+- `--dueDate` *optional*
+
+  Set [Jira ticket labels](https://confluence.atlassian.com/jirasoftwareserver/editing-and-collaborating-on-issues-939938928.html)
+
+  *Example*: `--dueDate=2022-12-01`
+-
 - `--dueDate` *optional*
 
   Set [Jira ticket labels](https://confluence.atlassian.com/jirasoftwareserver/editing-and-collaborating-on-issues-939938928.html)
@@ -146,6 +159,13 @@ Use `go install github.com/snyk-tech-services/jira-tickets-for-new-vulns@latest`
   *Example*: `--cveInTitle=true`
   **Note: Not supported for Snyk Code**
 
+- `--cveInTitle` *optional*
+
+  Enables the CVEs as suffix in the Jira ticket title.
+
+  *Example*: `--cveInTitle=true`
+  **Note: Not supported for Snyk Code**
+
 - `--ifUpgradeAvailableOnly` *optional*
 
   Only create tickets for `vuln` issues that are upgradable.`--type` must be set to `all` or `vuln` for this to work.
@@ -155,25 +175,39 @@ Use `go install github.com/snyk-tech-services/jira-tickets-for-new-vulns@latest`
 - `--projectCriticality` *optional*
 
   Include only projects whose [Snyk business criticality attribute](https://docs.snyk.io/introducing-snyk/introduction-to-snyk-projects/view-project-information/project-attributes#business-criticality) contains one or more of the specified values. This should be all lower case, comma separated with no spaces.
+  Include only projects whose [Snyk business criticality attribute](https://docs.snyk.io/introducing-snyk/introduction-to-snyk-projects/view-project-information/project-attributes#business-criticality) contains one or more of the specified values. This should be all lower case, comma separated with no spaces.
 
+  *Example*: `--projectCriticality=critical,medium`
   *Example*: `--projectCriticality=critical,medium`
 
 - `--projectEnvironment` *optional*
 
   Include only projects whose [Snyk environment attribute](https://docs.snyk.io/introducing-snyk/introduction-to-snyk-projects/view-project-information/project-attributes#environment) contains one or more of the specified values. This should be all lower case, comma separated with no spaces.
+  Include only projects whose [Snyk environment attribute](https://docs.snyk.io/introducing-snyk/introduction-to-snyk-projects/view-project-information/project-attributes#environment) contains one or more of the specified values. This should be all lower case, comma separated with no spaces.
 
+  *Example*: `--projectEnvironment=backend,frontend`
   *Example*: `--projectEnvironment=backend,frontend`
 
 - `--projectLifecycle` *optional*
 
   Include only projects whose [Snyk lifecycle attribute](https://docs.snyk.io/introducing-snyk/introduction-to-snyk-projects/view-project-information/project-attributes#lifecycle-stage) contains one or more of the specified values. This should be all lower case, comma separated with no spaces.
+  Include only projects whose [Snyk lifecycle attribute](https://docs.snyk.io/introducing-snyk/introduction-to-snyk-projects/view-project-information/project-attributes#lifecycle-stage) contains one or more of the specified values. This should be all lower case, comma separated with no spaces.
 
+  *Example*: `--projectLifecycle=development,production`
   *Example*: `--projectLifecycle=development,production`
 
 - `--configFile` *optional*
 
   Path the directory where `jira.yaml` file is located (by default we will check current directory)
+  Path the directory where `jira.yaml` file is located (by default we will check current directory)
 
+  *Example*: `--configFile=/directory-name`
+
+- `--ifAutoFixableOnly` *optional*
+
+  Only create tickets for `vuln` issues that are fixable (no effect when using `ifUpgradeAvailableOnly`).`--type` must be set to `all` or `vuln` for this to work.
+
+  *Example*: `--ifAutoFixableOnly=true`
   *Example*: `--configFile=/directory-name`
 
 - `--ifAutoFixableOnly` *optional*
@@ -189,6 +223,12 @@ The tool does not support IAC project. It will open issue only for code and open
 Option to get the JIRA ticket priority set based on issue severity.
 Defaults map to:
 
+|  Issue severity  | JIRA priority |
+|:----------------:|:-------------:|
+|     critical     |    Highest    |
+|       high       |     High      |
+|      medium      |    Medium     |
+|       low        |      Low      |
 |  Issue severity  | JIRA priority |
 |:----------------:|:-------------:|
 |     critical     |    Highest    |
@@ -225,6 +265,7 @@ A logFile listing all the tickets created can be found where the tool has been r
       {
         "Summary": "test/goof:package.json - Remote Code Execution (RCE)",
         "Description": "\r\n \\*\\*\\*\\* Issue details: \\*\\*\\*\\*\n\r\n cvssScore:  8.10\n exploitMaturity:  proof\\-of\\-concept\n severity:  high\n pkgVersions: 3.0.0\\]\n\r\n*Impacted Paths:*\n\\- \"snyk\"@\"1.228.3\" =\u003e \"proxy\\-agent\"@\"3.1.0\" =\u003e \"pac\\-proxy\\-agent\"@\"3.0.0\" =\u003e \"pac\\-resolver\"@\"3.0.0\"\n\r\n[See this issue on Snyk|https://app.snyk.io/org/test/project/123]\n\n[More About this issue|https://security.snyk.io/vuln/SNYK-JS-PACRESOLVER-1589857]\n\n",
+        "Description": "\r\n \\*\\*\\*\\* Issue details: \\*\\*\\*\\*\n\r\n cvssScore:  8.10\n exploitMaturity:  proof\\-of\\-concept\n severity:  high\n pkgVersions: 3.0.0\\]\n\r\n*Impacted Paths:*\n\\- \"snyk\"@\"1.228.3\" =\u003e \"proxy\\-agent\"@\"3.1.0\" =\u003e \"pac\\-proxy\\-agent\"@\"3.0.0\" =\u003e \"pac\\-resolver\"@\"3.0.0\"\n\r\n[See this issue on Snyk|https://app.snyk.io/org/test/project/123]\n\n[More About this issue|https://security.snyk.io/vuln/SNYK-JS-PACRESOLVER-1589857]\n\n",
         "JiraIssueDetail": {
           "JiraIssue": {
             "Id": "10001",
@@ -235,6 +276,7 @@ A logFile listing all the tickets created can be found where the tool has been r
       },
       {
         "Summary": "test/goof:package.json - Prototype Pollution",
+        "Description": "\r\n \\*\\*\\*\\* Issue details: \\*\\*\\*\\*\n\r\n cvssScore:  6.30\n exploitMaturity:  proof\\-of\\-concept\n severity:  medium\n pkgVersions: 4.2.0\\]\n\r\n*Impacted Paths:*\n\\- \"snyk\"@\"1.228.3\" =\u003e \"configstore\"@\"3.1.2\" =\u003e \"dot\\-prop\"@\"4.2.0\"\n\r\\- \"snyk\"@\"1.228.3\" =\u003e \"update\\-notifier\"@\"2.5.0\" =\u003e \"configstore\"@\"3.1.2\" =\u003e \"dot\\-prop\"@\"4.2.0\"\n\r\n[See this issue on Snyk|https://app.snyk.io/org/test/project/123]\n\n[More About this issue|https://security.snyk.io/vuln/SNYK-JS-DOTPROP-543499]\n\n",
         "Description": "\r\n \\*\\*\\*\\* Issue details: \\*\\*\\*\\*\n\r\n cvssScore:  6.30\n exploitMaturity:  proof\\-of\\-concept\n severity:  medium\n pkgVersions: 4.2.0\\]\n\r\n*Impacted Paths:*\n\\- \"snyk\"@\"1.228.3\" =\u003e \"configstore\"@\"3.1.2\" =\u003e \"dot\\-prop\"@\"4.2.0\"\n\r\\- \"snyk\"@\"1.228.3\" =\u003e \"update\\-notifier\"@\"2.5.0\" =\u003e \"configstore\"@\"3.1.2\" =\u003e \"dot\\-prop\"@\"4.2.0\"\n\r\n[See this issue on Snyk|https://app.snyk.io/org/test/project/123]\n\n[More About this issue|https://security.snyk.io/vuln/SNYK-JS-DOTPROP-543499]\n\n",
         "JiraIssueDetail": {
           "JiraIssue": {
@@ -306,7 +348,7 @@ snyk:
 jira:
     jiraTicketType: Task # <Task|Bug|....>
     jiraProjectID: 12345
-    assigneeId: 123abc456def789
+    assigneeId: "123abc456def789"
     priorityIsSeverity: true # <true|false>
     labels: label1 # <IssueLabel1>,<IssueLabel2>
     jiraProjectKey: testProject
@@ -315,7 +357,9 @@ jira:
         key:
             value: 5
         customfield_10601:
+        customfield_10601:
           value: jiraValue-MultiGroupPicker-Value1,Value2
+        customfield_10602:
         customfield_10602:
           value: jiraValue-simpleField-something to add to the ticket
 ```

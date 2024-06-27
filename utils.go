@@ -3,10 +3,13 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
+	"strings"
 	"reflect"
 	"strings"
 	"time"
@@ -18,7 +21,11 @@ import (
 
 /*
 **
+/*
+**
 Function setDebug and getDebug
+**
+*/
 **
 */
 func (m *debug) setDebug(b bool) {
@@ -31,9 +38,13 @@ func (m *debug) getDebug() bool {
 
 /*
 **
+/*
+**
 Function Debug
 check if flag is set
 print debug
+**
+*/
 **
 */
 func (m *debug) Debug(args ...interface{}) {
@@ -48,9 +59,13 @@ func (m *debug) Print(args ...interface{}) {
 
 /*
 **
+/*
+**
 Function Debugf
 check if flag is set
 print debug with formatting directive
+**
+*/
 **
 */
 func (m *debug) Debugf(format string, args ...interface{}) {
@@ -65,8 +80,12 @@ func (m *debug) Printf(format string, args ...interface{}) {
 
 /*
 **
+/*
+**
 Function setOption
 set the mandatory flags structure
+**
+*/
 **
 */
 func (Mf *MandatoryFlags) setMandatoryFlags(apiTokenPtr *string, v viper.Viper) {
@@ -84,8 +103,13 @@ func (Mf *MandatoryFlags) setMandatoryFlags(apiTokenPtr *string, v viper.Viper) 
 
 /*
 **
+/*
+**
 Function setOption
 set the optional flags structure
+**
+*/
+func (Of *optionalFlags) setOptionalFlags(debugPtr bool, dryRunPtr bool, v viper.Viper) {
 **
 */
 func (Of *optionalFlags) setOptionalFlags(debugPtr bool, dryRunPtr bool, v viper.Viper) {
@@ -102,19 +126,26 @@ func (Of *optionalFlags) setOptionalFlags(debugPtr bool, dryRunPtr bool, v viper
 	Of.assigneeID = v.GetString("jira.assigneeID")
 	Of.labels = v.GetString("jira.labels")
 	Of.dueDate = v.GetString("jira.dueDate")
+	Of.dueDate = v.GetString("jira.dueDate")
 	Of.priorityIsSeverity = v.GetBool("jira.priorityIsSeverity")
 	Of.priorityScoreThreshold = v.GetInt("snyk.priorityScoreThreshold")
 	Of.debug = debugPtr
 	Of.dryRun = dryRunPtr
 	Of.cveInTitle = v.GetBool("jira.cveInTitle")
+	Of.cveInTitle = v.GetBool("jira.cveInTitle")
 	Of.ifUpgradeAvailableOnly = v.GetBool("snyk.ifUpgradeAvailableOnly")
+	Of.ifAutoFixableOnly = v.GetBool("snyk.ifAutoFixableOnly")
 	Of.ifAutoFixableOnly = v.GetBool("snyk.ifAutoFixableOnly")
 }
 
 /*
 **
+/*
+**
 Function resetFlag
 reset commands line flags
+**
+*/
 **
 */
 func resetFlag() {
@@ -127,9 +158,13 @@ func resetFlag() {
 
 /*
 **
+/*
+**
 Function setOption
 get the arguments
 set the flags structures
+**
+*/
 **
 */
 func (opt *flags) setOption(args []string) {
@@ -148,6 +183,7 @@ func (opt *flags) setOption(args []string) {
 	fs.String("orgID", "", "Your Snyk Organization ID (check under Settings)")
 	fs.String("projectID", "", "Optional. Your Project ID. Will sync all projects Of your organization if not provided")
 	fs.String("api", "https://api.snyk.io", "Optional. Your API endpoint for onprem deployments (https://yourdeploymenthostname/api)")
+	fs.String("api", "https://api.snyk.io", "Optional. Your API endpoint for onprem deployments (https://yourdeploymenthostname/api)")
 	apiTokenPtr = fs.String("token", "", "Your API token")
 	fs.String("jiraProjectID", "", "Your JIRA projectID (jiraProjectID or jiraProjectKey is required)")
 	fs.String("jiraProjectKey", "", "Your JIRA projectKey (jiraProjectID or jiraProjectKey is required)")
@@ -160,7 +196,9 @@ func (opt *flags) setOption(args []string) {
 	fs.String("maturityFilter", "", "Optional. include only maturity level(s) separated by commas [mature,proof-of-concept,no-known-exploit,no-data]")
 	fs.String("type", "all", "Optional. Your issue type (all|vuln|license)")
 	fs.String("assigneeId", "", "Optional. The Jira user accountId to assign issues to")
+	fs.String("assigneeId", "", "Optional. The Jira user accountId to assign issues to")
 	fs.String("labels", "", "Optional. Jira ticket labels")
+	fs.String("dueDate", "", "Optional. The built-in Due Date field")
 	fs.String("dueDate", "", "Optional. The built-in Due Date field")
 	fs.Bool("priorityIsSeverity", false, "Boolean. Use issue severity as priority")
 	fs.Int("priorityScoreThreshold", 0, "Optional. Your min priority score threshold [INT between 0 and 1000]")
@@ -169,7 +207,16 @@ func (opt *flags) setOption(args []string) {
 	fs.Bool("cveInTitle", false, "Optional. Boolean. Adds the CVEs to the jira ticket title")
 	fs.Bool("ifUpgradeAvailableOnly", false, "Optional. Boolean. Opens tickets only for upgradable issues")
 	fs.Bool("ifAutoFixableOnly", false, "Optional. Boolean. Opens tickets for issues that are fixable (no effect when using ifUpgradeAvailableOnly)")
+	dryRunPtr = fs.Bool("dryRun", false, "Optional. Boolean. Creates a file with all the tickets without open them on jira")
+	fs.Bool("cveInTitle", false, "Optional. Boolean. Adds the CVEs to the jira ticket title")
+	fs.Bool("ifUpgradeAvailableOnly", false, "Optional. Boolean. Opens tickets only for upgradable issues")
+	fs.Bool("ifAutoFixableOnly", false, "Optional. Boolean. Opens tickets for issues that are fixable (no effect when using ifUpgradeAvailableOnly)")
 	configFilePtr = fs.String("configFile", "", "Optional. Config file path. Use config file to set parameters")
+	errParse := fs.Parse(args)
+	if errParse != nil {
+		log.Println("*** ERROR *** Error parsing command line arguments: ", errParse.Error())
+		os.Exit(1)
+	}
 	errParse := fs.Parse(args)
 	if errParse != nil {
 		log.Println("*** ERROR *** Error parsing command line arguments: ", errParse.Error())
@@ -196,9 +243,12 @@ func (opt *flags) setOption(args []string) {
 	v.BindPFlag("jira.labels", fs.Lookup("labels"))
 	v.BindPFlag("jira.cveInTitle", fs.Lookup("cveInTitle"))
 	v.BindPFlag("jira.dueDate", fs.Lookup("dueDate"))
+	v.BindPFlag("jira.cveInTitle", fs.Lookup("cveInTitle"))
+	v.BindPFlag("jira.dueDate", fs.Lookup("dueDate"))
 	v.BindPFlag("jira.priorityIsSeverity", fs.Lookup("priorityIsSeverity"))
 	v.BindPFlag("snyk.priorityScoreThreshold", fs.Lookup("priorityScoreThreshold"))
 	v.BindPFlag("snyk.ifUpgradeAvailableOnly", fs.Lookup("ifUpgradeAvailableOnly"))
+	v.BindPFlag("snyk.ifAutoFixableOnly", fs.Lookup("ifAutoFixableOnly"))
 	v.BindPFlag("snyk.ifAutoFixableOnly", fs.Lookup("ifAutoFixableOnly"))
 
 	// Set and parse config file
@@ -212,6 +262,7 @@ func (opt *flags) setOption(args []string) {
 	}
 
 	configFile, configFileLocation := ReadFile(*configFilePtr, true)
+	configFile, configFileLocation := ReadFile(*configFilePtr, true)
 
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
@@ -223,9 +274,12 @@ func (opt *flags) setOption(args []string) {
 
 	customMandatoryJiraFields := CheckConfigFileFormat(configFile)
 	opt.customMandatoryJiraFields = customMandatoryJiraFields
+	customMandatoryJiraFields := CheckConfigFileFormat(configFile)
+	opt.customMandatoryJiraFields = customMandatoryJiraFields
 
 	// Setting the flags structure
 	opt.mandatoryFlags.setMandatoryFlags(apiTokenPtr, *v)
+	opt.optionalFlags.setOptionalFlags(*debugPtr, *dryRunPtr, *v)
 	opt.optionalFlags.setOptionalFlags(*debugPtr, *dryRunPtr, *v)
 
 	// check the flags rules
@@ -234,8 +288,12 @@ func (opt *flags) setOption(args []string) {
 
 /*
 **
+/*
+**
 Function checkMandatoryAreSet
 exit if the mandatory flags are missing
+**
+*/
 **
 */
 func (flags *MandatoryFlags) checkMandatoryAreSet() {
@@ -247,6 +305,8 @@ func (flags *MandatoryFlags) checkMandatoryAreSet() {
 
 /*
 **
+/*
+**
 Function checkFlags
 check flags rules
 To work properly with jira these needs to be respected:
@@ -255,8 +315,14 @@ To work properly with jira these needs to be respected:
 
 **
 */
+  - set only jiraProjectID or jiraProjectKey, not both
+  - priorityScoreThreshold must be between 0 and 1000
+
+**
+*/
 func (flags *flags) checkFlags() {
 	if flags.mandatoryFlags.jiraProjectID != "" && flags.mandatoryFlags.jiraProjectKey != "" {
+		log.Fatalf("*** ERROR *** You passed both jiraProjectID and jiraProjectKey in parameters\n Please, Use jiraProjectID OR jiraProjectKey, not both")
 		log.Fatalf("*** ERROR *** You passed both jiraProjectID and jiraProjectKey in parameters\n Please, Use jiraProjectID OR jiraProjectKey, not both")
 	}
 
@@ -271,10 +337,16 @@ func (flags *flags) checkFlags() {
 
 /*
 **
+/*
+**
 function CreateLogFile
 return filename: string
 argument: debug
 Check if the file exist if not create it
+**
+*/
+
+func CreateLogFile(customDebug debug, fileType string) string {
 **
 */
 
@@ -284,6 +356,7 @@ func CreateLogFile(customDebug debug, fileType string) string {
 	date := getDate()
 
 	// Set filename
+	filename := fileType + date + ".json"
 	filename := fileType + date + ".json"
 
 	// If the file doesn't exist, create it, or append to the file
@@ -299,10 +372,14 @@ func CreateLogFile(customDebug debug, fileType string) string {
 
 /*
 **
+/*
+**
 function getDate
 return date: string
 argument: none
 return a string containing date and time
+**
+*/
 **
 */
 func getDate() string {
@@ -320,10 +397,14 @@ func getDate() string {
 
 /*
 **
+/*
+**
 function getDate
 return date: string
 argument: none
 return a string containing date and time
+**
+*/
 **
 */
 func getDateDayOnly() string {
@@ -338,12 +419,16 @@ func getDateDayOnly() string {
 
 /*
 **
+/*
+**
 function writeLogFile
 return date: string
 input: map[string]interface{} logFile: details of the ticket to be written in the file
 input: string filename: name of the file created in the main function
 input: customDebug debug
 Write the logFile in the file. Details are append to the file per project ID
+**
+*/
 **
 */
 func writeLogFile(logFile map[string]map[string]interface{}, filename string, customDebug debug) {
@@ -376,7 +461,14 @@ func Sprintf2(format string, a ...interface{}) string {
 }
 
 func writeErrorFile(function string, errorText string, customDebug debug) {
+func Sprintf2(format string, a ...interface{}) string {
+	a = append(a, "\r")
+	return fmt.Sprintf(format, a...)
+}
 
+func writeErrorFile(function string, errorText string, customDebug debug) {
+
+	errorsInterface := make(map[string]interface{})
 	errorsInterface := make(map[string]interface{})
 
 	// Get filePath
@@ -407,11 +499,31 @@ func writeErrorFile(function string, errorText string, customDebug debug) {
 	err = ioutil.WriteFile(filename, NewErrorsList, 0644)
 	if err != nil {
 		log.Fatal(err)
+		log.Println("*** ERROR *** Please check the format config file", err)
+	}
+
+	// Add the new error
+	if errorsInterface[function] != nil {
+		errorsInterface[function] = Sprintf2(errorText, errorsInterface[function])
+	} else {
+		errorsInterface[function] = errorText
+	}
+
+	NewErrorsList, err := json.Marshal(errorsInterface)
+	if err != nil {
+		log.Println("*** ERROR *** Please check the format config file, could not extract 'jira' config", err)
+	}
+
+	err = ioutil.WriteFile(filename, NewErrorsList, 0644)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	return
 }
 
+/*
+**
 /*
 **
 function IsTestRun
@@ -420,16 +532,22 @@ input: boolean
 check is the EXECUTION_ENVIRONMENT env is set
 **
 */
+**
+*/
 func IsTestRun() bool {
 	return os.Getenv("EXECUTION_ENVIRONMENT") == "test"
 }
 
 /*
 **
+/*
+**
 function findCustomJiraMandatoryFlags
 return: map[string]interface{} : list of mandatory fields and value associated
 input: none
 Read the config file and extract the jira fields than the mandatory field inside it
+**
+*/
 **
 */
 func findCustomJiraMandatoryFlags(yamlFile []byte) map[string]interface{} {
@@ -478,10 +596,14 @@ func findCustomJiraMandatoryFlags(yamlFile []byte) map[string]interface{} {
 
 /*
 **
+/*
+**
 function convertYamltoJson
 input map[interface{}]interface{}, type from unmarshalling yaml
 return map[string]interface{} ticket type from unmarshalling json
 convert the type we get from yaml to a json one
+**
+*/
 **
 */
 func convertYamltoJson(m map[interface{}]interface{}) map[string]interface{} {
@@ -497,6 +619,8 @@ func convertYamltoJson(m map[interface{}]interface{}) map[string]interface{} {
 	return res
 }
 
+/*
+**
 /*
 **
 function CheckConfigFileFormat

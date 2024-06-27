@@ -131,11 +131,15 @@ func getVulnsWithoutTicket(flags flags, projectID string, maturityFilter []strin
 	if err != nil {
 		message := fmt.Sprintf(" *** ERROR *** IAC projects are not supported by this tool, skipping this project")
 		writeErrorFile("getVulnsWithoutTicket", message, customDebug)
+		message := fmt.Sprintf(" *** ERROR *** IAC projects are not supported by this tool, skipping this project")
+		writeErrorFile("getVulnsWithoutTicket", message, customDebug)
 		customDebug.Debug(" *** ERROR *** IAC projects are not supported by this tool, skipping this project")
 	}
 
 	responseAggregatedData, err := makeSnykAPIRequest("POST", flags.mandatoryFlags.endpointAPI+"/v1/org/"+flags.mandatoryFlags.orgID+"/project/"+projectID+"/aggregated-issues", flags.mandatoryFlags.apiToken, marshalledBody, customDebug)
 	if err != nil {
+		message := fmt.Sprintf("*** ERROR *** Could not get aggregated data from %s org %s project %s, skipping this project", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID)
+		writeErrorFile("getVulnsWithoutTicket", message, customDebug)
 		message := fmt.Sprintf("*** ERROR *** Could not get aggregated data from %s org %s project %s, skipping this project", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID)
 		writeErrorFile("getVulnsWithoutTicket", message, customDebug)
 		customDebug.Debugf("*** ERROR *** Could not get aggregated data from %s org %s project %s, skipping this project", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID)
@@ -153,6 +157,8 @@ func getVulnsWithoutTicket(flags flags, projectID string, maturityFilter []strin
 
 	// IAC issues are of type configuration and are not supported atm
 	if issueType == "configuration" {
+		message := fmt.Sprintf(" *** WARN *** IAC projects are not supported, skipping project ID %s", projectID)
+		writeErrorFile("getVulnsWithoutTicket", message, customDebug)
 		message := fmt.Sprintf(" *** WARN *** IAC projects are not supported, skipping project ID %s", projectID)
 		writeErrorFile("getVulnsWithoutTicket", message, customDebug)
 		customDebug.Debug(" *** WARN *** IAC projects are not supported, skipping")
@@ -215,6 +221,8 @@ func getSnykOpenSourceIssueWithoutTickets(flags flags, projectID string, maturit
 
 	j, err := jsn.NewJson(responseAggregatedData)
 	if err != nil {
+		message := fmt.Sprintf(" %s", err.Error())
+		writeErrorFile("getSnykOpenSourceIssueWithoutTickets", message, customDebug)
 		message := fmt.Sprintf(" %s", err.Error())
 		writeErrorFile("getSnykOpenSourceIssueWithoutTickets", message, customDebug)
 		return nil, "", err
@@ -446,6 +454,8 @@ func getSnykCodeIssueWithoutTickets(flags flags, projectID string, tickets map[s
 					errorMessage = err
 					message := fmt.Sprintf("*** ERROR ***** Could not get code issues list from %s org %s project %s", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID)
 					writeErrorFile("getSnykCodeIssueWithoutTickets", message, customDebug)
+					message := fmt.Sprintf("*** ERROR ***** Could not get code issues list from %s org %s project %s", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID)
+					writeErrorFile("getSnykCodeIssueWithoutTickets", message, customDebug)
 					break
 				}
 			}
@@ -465,8 +475,14 @@ func getSnykCodeIssueWithoutTickets(flags flags, projectID string, tickets map[s
 							continue
 						}
 
+						// checking if the issue is ignored
+						if e.K("attributes").K("ignored").Bool().Value == true {
+							continue
+						}
+
 						id := e.K("id").String().Value
 
+						url := endpointAPI + "/rest/orgs/" + flags.mandatoryFlags.orgID + "/issues/detail/code/" + id + "?project_id=" + projectID + "&version=2022-04-06~experimental"
 						url := endpointAPI + "/rest/orgs/" + flags.mandatoryFlags.orgID + "/issues/detail/code/" + id + "?project_id=" + projectID + "&version=2022-04-06~experimental"
 
 						// get the details of this code issue id
@@ -475,12 +491,16 @@ func getSnykCodeIssueWithoutTickets(flags flags, projectID string, tickets map[s
 							log.Printf("*** ERROR *** Could not get code issues list from %s org %s project %s", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID)
 							message := fmt.Sprintf("*** ERROR *** Could not get code issues list from %s org %s project %s", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID)
 							writeErrorFile("getSnykCodeIssueWithoutTickets", message, customDebug)
+							message := fmt.Sprintf("*** ERROR *** Could not get code issues list from %s org %s project %s", flags.mandatoryFlags.endpointAPI, flags.mandatoryFlags.orgID, projectID)
+							writeErrorFile("getSnykCodeIssueWithoutTickets", message, customDebug)
 							continue
 						}
 
 						jsonIssueDetail, er := jsn.NewJson(responseIssueDetail)
 						if er != nil {
 							log.Printf("*** ERROR *** Json creation failed\n")
+							message := fmt.Sprintf("*** ERROR *** Json creation failed\n")
+							writeErrorFile("getSnykCodeIssueWithoutTickets", message, customDebug)
 							message := fmt.Sprintf("*** ERROR *** Json creation failed\n")
 							writeErrorFile("getSnykCodeIssueWithoutTickets", message, customDebug)
 							continue
@@ -497,6 +517,11 @@ func getSnykCodeIssueWithoutTickets(flags flags, projectID string, tickets map[s
 								customDebug.Debug(fmt.Sprintf("*** INFO *** Filtering out issue based on priority score priorityScoreThreshold=%d, issue priorityScore=%d", flags.optionalFlags.priorityScoreThreshold, jsonIssueDetail.K("data").K("attributes").K("priorityScore").Int().Value))
 								continue
 							}
+						if flags.optionalFlags.priorityScoreThreshold > 0 {
+							if flags.optionalFlags.priorityScoreThreshold > jsonIssueDetail.K("data").K("attributes").K("priorityScore").Int().Value {
+								customDebug.Debug(fmt.Sprintf("*** INFO *** Filtering out issue based on priority score priorityScoreThreshold=%d, issue priorityScore=%d", flags.optionalFlags.priorityScoreThreshold, jsonIssueDetail.K("data").K("attributes").K("priorityScore").Int().Value))
+								continue
+							}
 						}
 
 						issueDetail["title"] = e.K("attributes").K("title").String().Value
@@ -507,6 +532,8 @@ func getSnykCodeIssueWithoutTickets(flags flags, projectID string, tickets map[s
 							log.Printf("*** ERROR *** Json creation failed\n")
 							message := fmt.Sprintf("*** ERROR *** Json creation failed\n")
 							writeErrorFile("getSnykCodeIssueWithoutTickets", message, customDebug)
+							message := fmt.Sprintf("*** ERROR *** Json creation failed\n")
+							writeErrorFile("getSnykCodeIssueWithoutTickets", message, customDebug)
 							log.Fatalln(er)
 						}
 					}
@@ -515,6 +542,7 @@ func getSnykCodeIssueWithoutTickets(flags flags, projectID string, tickets map[s
 			}
 
 			if len(jsonData.K("links").K("next").String().Value) > 0 {
+				url = endpointAPI + "/rest" + jsonData.K("links").K("next").String().Value
 				url = endpointAPI + "/rest" + jsonData.K("links").K("next").String().Value
 			} else {
 				break
