@@ -7,6 +7,7 @@ import (
 	"sort"
 	"log"
 	"strings"
+	"strconv"
 
 	bfconfluence "github.com/kentaro-m/blackfriday-confluence"
 	"github.com/michael-go/go-jsn/jsn"
@@ -318,8 +319,22 @@ func addMandatoryFieldToTicket(ticket []byte, customMandatoryField map[string]in
 	
     for i, s := range customMandatoryField {
         switch v := s.(type) {
-        case string:
-            fields[i] = v
+		case string:
+			// Check if the current field is customfield_10004
+			if i == "customfield_10004" {
+				// Convert the string to int (if it's a valid number) or assign a default value.
+				if value, err := strconv.Atoi(v); err == nil {
+					fields[i] = value // Assign the converted integer value.
+				} else {
+					// Handle conversion error, e.g., log a message or set a default value.
+					message := fmt.Sprintf("*** ERROR *** Invalid value for field %s: %s cannot be converted to int", i, v)
+					writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
+					customDebug.Debug(message)
+					fields[i] = 0 // Set to default value if conversion fails.
+				}
+			} else {
+				fields[i] = v // For other string fields, assign the value directly.
+			}
         case map[string]interface{}:
             fieldValue, ok := v["value"].(string)
             if ok && strings.HasPrefix(fieldValue, JiraPrefix) {
