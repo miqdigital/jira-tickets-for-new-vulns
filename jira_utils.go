@@ -257,7 +257,14 @@ func addMandatoryFieldToTicket(ticket []byte, customMandatoryField map[string]in
 	}
 
 	for i, s := range customMandatoryField {
-
+		if i == "customfield_10004" {
+			if str, ok := s.(string); ok {
+				fields[i] = str
+			} else {
+				fields[i] = "0"  
+			}
+			continue
+		}
 		value, ok := s.(map[string]interface{})
 		if ok {
 			v, ok := value["value"].(string)
