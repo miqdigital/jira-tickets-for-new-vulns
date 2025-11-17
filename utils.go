@@ -96,7 +96,6 @@ func (Of *optionalFlags) setOptionalFlags(debugPtr bool, dryRunPtr bool, v viper
 	Of.projectLifecycle = v.GetString("snyk.projectLifecycle")
 	Of.jiraTicketType = v.GetString("jira.jiraTicketType")
 	Of.severity = v.GetString("snyk.severity")
-	Of.severityArray = v.GetString("snyk.severityArray")
 	Of.issueType = v.GetString("snyk.type")
 	Of.maturityFilterString = v.GetString("snyk.maturityFilter")
 	Of.assigneeID = v.GetString("jira.assigneeID")
@@ -152,11 +151,10 @@ func (opt *flags) setOption(args []string) {
 	fs.String("jiraProjectID", "", "Your JIRA projectID (jiraProjectID or jiraProjectKey is required)")
 	fs.String("jiraProjectKey", "", "Your JIRA projectKey (jiraProjectID or jiraProjectKey is required)")
 	fs.String("jiraTicketType", "Bug", "Optional. Chosen JIRA ticket type")
-	fs.String("severityArray", "", "Optional. Your severity array, to be used for multiple or specific severity")
 	fs.String("projectCriticality", "", "Optional. Include only projects whose criticality attribute contains one or more of the specified values.")
 	fs.String("projectEnvironment", "", "Optional. Include only projects whose environment attribute contains one or more of the specified values.")
 	fs.String("projectLifecycle", "", "Optional. Include only projects whose lifecycle attribute contains one or more of the specified values.")
-	fs.String("severity", "", "Optional. Your severity threshold")
+	fs.String("severity", "low", "Optional. Your severity threshold")
 	fs.String("maturityFilter", "", "Optional. include only maturity level(s) separated by commas [mature,proof-of-concept,no-known-exploit,no-data]")
 	fs.String("type", "all", "Optional. Your issue type (all|vuln|license)")
 	fs.String("assigneeId", "", "Optional. The Jira user accountId to assign issues to")
@@ -189,7 +187,6 @@ func (opt *flags) setOption(args []string) {
 	v.BindPFlag("snyk.projectLifecycle", fs.Lookup("projectLifecycle"))
 	v.BindPFlag("jira.jiraTicketType", fs.Lookup("jiraTicketType"))
 	v.BindPFlag("snyk.severity", fs.Lookup("severity"))
-	v.BindPFlag("snyk.severityArray", fs.Lookup("severityArray"))
 	v.BindPFlag("snyk.type", fs.Lookup("type"))
 	v.BindPFlag("snyk.maturityFilter", fs.Lookup("maturityFilter"))
 	v.BindPFlag("jira.assigneeID", fs.Lookup("assigneeId"))
@@ -262,10 +259,6 @@ func (flags *flags) checkFlags() {
 
 	if flags.optionalFlags.priorityScoreThreshold < 0 || flags.optionalFlags.priorityScoreThreshold > 1000 {
 		log.Fatalf("*** ERROR *** %d is not a valid score. Must be between 0-1000.", flags.optionalFlags.priorityScoreThreshold)
-	}
-
-	if flags.optionalFlags.severityArray != "" && flags.optionalFlags.severity != "" {
-		log.Fatalf(("*** ERROR *** You passed both severityArray and severity in parameters\n Please, Use severityArray OR severity, not both"))
 	}
 }
 
@@ -723,51 +716,6 @@ func checkJiraValue(JiraValues interface{}) (bool, map[string]interface{}) {
 	return isJiraConfigOk, customMandatoryJiraFields
 }
 
-// func checkMandatoryField(customJiraMandatoryField_ interface{}, yamlCustomJiraMandatoryField map[interface{}]interface{}) (bool, map[string]interface{}) {
-
-// 	jsonCustomJiraMandatoryField := make(map[string]interface{})
-// 	fields := make(map[string]interface{})
-
-// 	marshalCustomJiraMandatoryField, err := yaml.Marshal(customJiraMandatoryField_)
-// 	if err != nil {
-// 		log.Println("*** ERROR *** Please check the format config file, could not extract 'customMandatoryFields' config", err)
-// 	}
-
-// 	err = yaml.Unmarshal(marshalCustomJiraMandatoryField, &yamlCustomJiraMandatoryField)
-// 	if err != nil {
-// 		log.Println("*** ERROR *** Please check the format config file, could not extract 'customMandatoryFields' config", err)
-// 	}
-
-// 	// converting the type, the yaml type is not compatible with the json one
-// 	// json doesn't understand map[interface{}]interface{} => it will fail
-// 	// when marshalling the ticket in a json format
-// 	jsonCustomJiraMandatoryField = convertYamltoJson(yamlCustomJiraMandatoryField)
-
-// 	log.Println("jsonCustomJiraMandatoryField, %s", jsonCustomJiraMandatoryField)
-
-// 	for i, s := range jsonCustomJiraMandatoryField {
-
-// 		value, ok := s.(map[string]interface{})
-// 		if ok {
-// 			v, ok := value["value"].(string)
-// 			if ok {
-// 				if strings.HasPrefix(v, JiraPrefix) {
-// 					s, err = supportJiraFormats(v, debug{PrintDebug: false})
-// 					if err != nil {
-// 						log.Printf("*** ERROR *** Error while extracting the mandatory Jira fields configuration\n %s", err)
-// 						return false, nil
-// 					}
-// 				}
-// 			}
-// 		} else {
-// 			log.Println(fmt.Sprintf("*** ERROR *** Expected mandatory Jira fields configuration to be in format map[string]interface{}, received type: %T for field %s ", s, i))
-// 			return false, nil
-// 		}
-// 		fields[i] = s
-// 	}
-// 	return true, fields
-// }
-
 func checkMandatoryField(customJiraMandatoryField_ interface{}, yamlCustomJiraMandatoryField map[interface{}]interface{}) (bool, map[string]interface{}) {
 
 	jsonCustomJiraMandatoryField := make(map[string]interface{})
@@ -788,28 +736,25 @@ func checkMandatoryField(customJiraMandatoryField_ interface{}, yamlCustomJiraMa
 	// when marshalling the ticket in a json format
 	jsonCustomJiraMandatoryField = convertYamltoJson(yamlCustomJiraMandatoryField)
 
-	log.Println("jsonCustomJiraMandatoryField, %s", jsonCustomJiraMandatoryField)
-
 	for i, s := range jsonCustomJiraMandatoryField {
-		switch v := s.(type) {
-		case string:
-			fields[i] = v
-		case map[string]interface{}:
-			value, ok := v["value"].(string)
+
+		value, ok := s.(map[string]interface{})
+		if ok {
+			v, ok := value["value"].(string)
 			if ok {
-				if strings.HasPrefix(value, JiraPrefix) {
-					s, err = supportJiraFormats(value, debug{PrintDebug: false})
+				if strings.HasPrefix(v, JiraPrefix) {
+					s, err = supportJiraFormats(v, debug{PrintDebug: false})
 					if err != nil {
 						log.Printf("*** ERROR *** Error while extracting the mandatory Jira fields configuration\n %s", err)
 						return false, nil
 					}
 				}
 			}
-			fields[i] = s
-		default:
-			log.Println(fmt.Sprintf("*** ERROR *** Unexpected type for field %s: %T", i, s))
+		} else {
+			log.Println(fmt.Sprintf("*** ERROR *** Expected mandatory Jira fields configuration to be in format map[string]interface{}, received type: %T for field %s ", s, i))
 			return false, nil
 		}
+		fields[i] = s
 	}
 	return true, fields
 }
