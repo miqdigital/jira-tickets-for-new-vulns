@@ -261,7 +261,7 @@ func addMandatoryFieldToTicket(ticket []byte, customMandatoryField map[string]in
 			if str, ok := s.(string); ok {
 				fields[i] = str
 			} else {
-				fields[i] = "0"  
+				fields[i] = fmt.Sprintf("%v", s)
 			}
 			continue
 		}

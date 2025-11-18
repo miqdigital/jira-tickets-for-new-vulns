@@ -737,7 +737,10 @@ func checkMandatoryField(customJiraMandatoryField_ interface{}, yamlCustomJiraMa
 	jsonCustomJiraMandatoryField = convertYamltoJson(yamlCustomJiraMandatoryField)
 
 	for i, s := range jsonCustomJiraMandatoryField {
-
+		if strVal, ok := s.(string); ok {
+			fields[i] = map[string]interface{}{"value": strVal}
+			continue
+		}
 		value, ok := s.(map[string]interface{})
 		if ok {
 			v, ok := value["value"].(string)
