@@ -154,7 +154,7 @@ func (opt *flags) setOption(args []string) {
 	fs.String("projectCriticality", "", "Optional. Include only projects whose criticality attribute contains one or more of the specified values.")
 	fs.String("projectEnvironment", "", "Optional. Include only projects whose environment attribute contains one or more of the specified values.")
 	fs.String("projectLifecycle", "", "Optional. Include only projects whose lifecycle attribute contains one or more of the specified values.")
-	fs.String("severity", "low", "Optional. Your severity threshold")
+	fs.String("severity", "", "Optional. Your severity threshold")
 	fs.String("maturityFilter", "", "Optional. include only maturity level(s) separated by commas [mature,proof-of-concept,no-known-exploit,no-data]")
 	fs.String("type", "all", "Optional. Your issue type (all|vuln|license)")
 	fs.String("assigneeId", "", "Optional. The Jira user accountId to assign issues to")
@@ -736,28 +736,28 @@ func checkMandatoryField(customJiraMandatoryField_ interface{}, yamlCustomJiraMa
 	// when marshalling the ticket in a json format
 	jsonCustomJiraMandatoryField = convertYamltoJson(yamlCustomJiraMandatoryField)
 
+	log.Println("jsonCustomJiraMandatoryField, %s", jsonCustomJiraMandatoryField)
+
 	for i, s := range jsonCustomJiraMandatoryField {
-		if strVal, ok := s.(string); ok {
-			fields[i] = map[string]interface{}{"value": strVal}
-			continue
-		}
-		value, ok := s.(map[string]interface{})
-		if ok {
-			v, ok := value["value"].(string)
+		switch v := s.(type) {
+		case string:
+			fields[i] = v
+		case map[string]interface{}:
+			value, ok := v["value"].(string)
 			if ok {
-				if strings.HasPrefix(v, JiraPrefix) {
-					s, err = supportJiraFormats(v, debug{PrintDebug: false})
+				if strings.HasPrefix(value, JiraPrefix) {
+					s, err = supportJiraFormats(value, debug{PrintDebug: false})
 					if err != nil {
 						log.Printf("*** ERROR *** Error while extracting the mandatory Jira fields configuration\n %s", err)
 						return false, nil
 					}
 				}
 			}
-		} else {
-			log.Println(fmt.Sprintf("*** ERROR *** Expected mandatory Jira fields configuration to be in format map[string]interface{}, received type: %T for field %s ", s, i))
+			fields[i] = s
+		default:
+			log.Println(fmt.Sprintf("*** ERROR *** Unexpected type for field %s: %T", i, s))
 			return false, nil
 		}
-		fields[i] = s
 	}
 	return true, fields
 }

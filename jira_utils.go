@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"log"
 	"strings"
+	"strconv"
 
 	bfconfluence "github.com/kentaro-m/blackfriday-confluence"
 	"github.com/michael-go/go-jsn/jsn"
@@ -229,69 +231,143 @@ return []byte ticket
 Add the mandatory fields extracted during setup to the ticket
 **
 */
+// func addMandatoryFieldToTicket(ticket []byte, customMandatoryField map[string]interface{}, customDebug debug) []byte {
+
+// 	unmarshalledTicket := make(map[string]interface{})
+// 	fields := make(map[string]interface{})
+// 	newTicket := make(map[string]interface{})
+
+// 	err := json.Unmarshal(ticket, &unmarshalledTicket)
+// 	if err != nil {
+// 		message := fmt.Sprintf("*** ERROR *** Could not unMarshalled ticket, mandatory fields will no the added %s", err.Error())
+// 		writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
+// 		customDebug.Debug("*** ERROR *** Could not unMarshalled ticket, mandatory fields will no the added ", err)
+// 	}
+
+// 	fieldFromTicket := unmarshalledTicket["fields"]
+
+// 	marshalledFieldFromTicket, _ := json.Marshal(fieldFromTicket)
+// 	if err != nil {
+// 		message := fmt.Sprintf("*** ERROR *** Could not parse Jira fields config, mandatory fields will no the added %s", err.Error())
+// 		writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
+// 		customDebug.Debug(message, err)
+// 	}
+
+// 	err = json.Unmarshal(marshalledFieldFromTicket, &fields)
+// 	if err != nil {
+// 		customDebug.Debug("*** ERROR *** Could not Jira fields config, mandatory fields will no the added ", err)
+// 	}
+    
+	
+// 	for i, s := range customMandatoryField {
+
+// 		value, ok := s.(map[string]interface{})
+// 		if ok {
+// 			v, ok := value["value"].(string)
+// 			if ok {
+// 				if strings.HasPrefix(v, JiraPrefix) {
+// 					s, _ = supportJiraFormats(v, customDebug)
+// 				}
+// 			}
+// 		} else {
+// 			customDebug.Debug(fmt.Sprintf("*** ERROR *** Expected mandatory Jira fields configuration to be in format map[string]interface{}, received type: %T for field %s ", s, i))
+// 			message := fmt.Sprintf("*** ERROR *** Expected mandatory Jira fields configuration to be in format map[string]interface{}, received type: %T for field %s ", s, i)
+// 			writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
+// 		}
+
+// 		fields[i] = s
+// 	}
+
+// 	newTicket["fields"] = fields
+
+// 	newMarshalledTicket, err := json.Marshal(newTicket)
+// 	if err != nil {
+// 		customDebug.Debug("*** ERROR *** Invalid JSON, mandatory Jira fields will be skipped. ERROR:", err)
+// 		message := fmt.Sprintf("*** ERROR *** Invalid JSON, mandatory Jira fields will be skipped. ERROR: %s", err.Error())
+// 		writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
+// 	}
+
+// 	return newMarshalledTicket
+// }
+
 func addMandatoryFieldToTicket(ticket []byte, customMandatoryField map[string]interface{}, customDebug debug) []byte {
 
-	unmarshalledTicket := make(map[string]interface{})
-	fields := make(map[string]interface{})
-	newTicket := make(map[string]interface{})
+    unmarshalledTicket := make(map[string]interface{})
+    fields := make(map[string]interface{})
+    newTicket := make(map[string]interface{})
 
-	err := json.Unmarshal(ticket, &unmarshalledTicket)
-	if err != nil {
-		message := fmt.Sprintf("*** ERROR *** Could not unMarshalled ticket, mandatory fields will no the added %s", err.Error())
-		writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
-		customDebug.Debug("*** ERROR *** Could not unMarshalled ticket, mandatory fields will no the added ", err)
-	}
+    err := json.Unmarshal(ticket, &unmarshalledTicket)
+    if err != nil {
+        message := fmt.Sprintf("*** ERROR *** Could not unMarshal ticket, mandatory fields will not be added %s", err.Error())
+        writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
+        customDebug.Debug("*** ERROR *** Could not unMarshal ticket, mandatory fields will not be added ", err)
+    }
 
-	fieldFromTicket := unmarshalledTicket["fields"]
+    fieldFromTicket, ok := unmarshalledTicket["fields"].(map[string]interface{})
+    if !ok {
+        message := "*** ERROR *** Could not parse Jira fields config, mandatory fields will not be added"
+        writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
+        customDebug.Debug(message)
+        return ticket
+    }
 
-	marshalledFieldFromTicket, _ := json.Marshal(fieldFromTicket)
-	if err != nil {
-		message := fmt.Sprintf("*** ERROR *** Could not parse Jira fields config, mandatory fields will no the added %s", err.Error())
-		writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
-		customDebug.Debug(message, err)
-	}
-
-	err = json.Unmarshal(marshalledFieldFromTicket, &fields)
-	if err != nil {
-		customDebug.Debug("*** ERROR *** Could not Jira fields config, mandatory fields will no the added ", err)
-	}
-
-	for i, s := range customMandatoryField {
-		if i == "customfield_10004" {
-			if str, ok := s.(string); ok {
-				fields[i] = str
-			} else {
-				fields[i] = fmt.Sprintf("%v", s)
-			}
-			continue
-		}
-		value, ok := s.(map[string]interface{})
-		if ok {
-			v, ok := value["value"].(string)
-			if ok {
-				if strings.HasPrefix(v, JiraPrefix) {
-					s, _ = supportJiraFormats(v, customDebug)
+    for key, value := range fieldFromTicket {
+        fields[key] = value
+    }
+    
+	log.Println("customMandatoryField %s", customMandatoryField)
+	
+    for i, s := range customMandatoryField {
+        switch v := s.(type) {
+		case string:
+			// Check if the current field is customfield_10004
+			if i == "customfield_10004" {
+				// Convert the string to int (if it's a valid number) or assign a default value.
+				if value, err := strconv.Atoi(v); err == nil {
+					fields[i] = value // Assign the converted integer value.
+				} else {
+					// Handle conversion error, e.g., log a message or set a default value.
+					message := fmt.Sprintf("*** ERROR *** Invalid value for field %s: %s cannot be converted to int", i, v)
+					writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
+					customDebug.Debug(message)
+					fields[i] = 0 // Set to default value if conversion fails.
 				}
+			} else {
+				fields[i] = v // For other string fields, assign the value directly.
 			}
-		} else {
-			customDebug.Debug(fmt.Sprintf("*** ERROR *** Expected mandatory Jira fields configuration to be in format map[string]interface{}, received type: %T for field %s ", s, i))
-			message := fmt.Sprintf("*** ERROR *** Expected mandatory Jira fields configuration to be in format map[string]interface{}, received type: %T for field %s ", s, i)
-			writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
-		}
+        case map[string]interface{}:
+            fieldValue, ok := v["value"].(string)
+            if ok && strings.HasPrefix(fieldValue, JiraPrefix) {
+                newValue, err := supportJiraFormats(fieldValue, customDebug)
+                if err != nil {
+                    message := fmt.Sprintf("*** ERROR *** Error while extracting the mandatory Jira fields configuration for field %s: %s", i, err)
+                    writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
+                    customDebug.Debug(message)
+                    continue
+                }
+                fields[i] = newValue
+            } else {
+                fields[i] = s
+            }
+        default:
+            message := fmt.Sprintf("*** ERROR *** Unexpected type for field %s: %T", i, s)
+            writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
+            customDebug.Debug(message)
+            continue
+        }
+    }
 
-		fields[i] = s
-	}
+    newTicket["fields"] = fields
 
-	newTicket["fields"] = fields
+    newMarshalledTicket, err := json.Marshal(newTicket)
+    if err != nil {
+        message := fmt.Sprintf("*** ERROR *** Invalid JSON, mandatory Jira fields will be skipped. ERROR: %s", err.Error())
+        writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
+        customDebug.Debug(message)
+        return ticket
+    }
 
-	newMarshalledTicket, err := json.Marshal(newTicket)
-	if err != nil {
-		customDebug.Debug("*** ERROR *** Invalid JSON, mandatory Jira fields will be skipped. ERROR:", err)
-		message := fmt.Sprintf("*** ERROR *** Invalid JSON, mandatory Jira fields will be skipped. ERROR: %s", err.Error())
-		writeErrorFile("addMandatoryFieldToTicket", message, customDebug)
-	}
-
-	return newMarshalledTicket
+    return newMarshalledTicket
 }
 
 /*
