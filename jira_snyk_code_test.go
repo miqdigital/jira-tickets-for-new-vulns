@@ -26,8 +26,7 @@ func TestFormatCodeTicketFunc(t *testing.T) {
 
 	// setting optional options
 	Of := optionalFlags{}
-	//Of.severity = ""
-	Of.severityArray = "high,medium"
+	Of.severity = ""
 	Of.priorityScoreThreshold = 0
 	Of.issueType = ""
 	Of.debug = true
